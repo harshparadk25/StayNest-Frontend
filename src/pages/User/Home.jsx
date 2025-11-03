@@ -1,139 +1,179 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
-import { Link } from "react-router-dom";
 import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import axios from "../../config/axios";
-
+import { motion } from "framer-motion";
+import { Sparkles, LogOut, User } from "lucide-react";
 
 const Home = () => {
-
   const [location, setLocation] = useState("dewas");
-const [checkIn, setCheckIn] = useState("2025-10-10");
-const [checkOut, setCheckOut] = useState("2025-10-12");
-const [rooms, setRooms] = useState(1);
-
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [rooms, setRooms] = useState(1);
   const navigate = useNavigate();
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    try {
+      if (!location || !checkIn || !checkOut || !rooms) {
+        toast.error("Please fill in all fields.");
+        return;
+      }
 
- const handleSearch = async (e) => {
-  e.preventDefault();
-  try {
-    if (!location || !checkIn || !checkOut || !rooms) {
-      toast.error("Please fill in all fields.");
-      return;
+      const body = {
+        city: location.toLowerCase(),
+        startDate: new Date(checkIn).toISOString().split("T")[0],
+        endDate: new Date(checkOut).toISOString().split("T")[0],
+        roomsCount: parseInt(rooms),
+        page: 0,
+        size: 10,
+      };
+
+      localStorage.setItem("lastSearch", JSON.stringify(body));
+      const res = await axios.post("/hotels/search", body);
+      console.log("Search Response:", res.data);
+
+      navigate("/search-results", {
+        state: { hotels: res.data.content || [], searchParams: body },
+      });
+    } catch (error) {
+      toast.error("Error searching for stays. Please try again.");
+      console.error("Search Error:", error);
     }
+  };
 
-    const body = {
-      city: location.toLowerCase(),
-      startDate: new Date(checkIn).toISOString().split("T")[0],
-      endDate: new Date(checkOut).toISOString().split("T")[0],
-      roomsCount: parseInt(rooms),
-      page: 0,
-      size: 10,
-    };
-
-    localStorage.setItem("lastSearch", JSON.stringify(body));
-
-    const res = await axios.post("/hotels/search", body);
-    console.log("Search Response:", res.data);
-
-    navigate("/search-results", { state: { hotels: res.data.content || [], searchParams: body } });
-  } catch (error) {
-    toast.error("Error searching for stays. Please try again.");
-    console.error("Search Error:", error);
-  }
-};
-
-
+  const handleLogout = () => {
+    localStorage.removeItem("accesstoken");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <div
-      className="relative h-screen w-full bg-cover bg-center bg-fixed"
-      style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80')",
-      }}
+      className="relative h-screen w-full overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900 via-black to-gray-900"
     >
-      {/* Frosted Overlay for Depth */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-
-      {/* Glassy Header */}
-      <header className="absolute top-0 left-0 w-full flex justify-between items-center px-8 py-4 bg-white/10 backdrop-blur-md border-b border-white/20 text-white z-20">
-        <h1 className="text-3xl font-semibold tracking-wide">StayNest</h1>
-        <Link to="/user-profile">
-          <Button className="bg-white/20 hover:bg-white/30 border border-white/30 text-white font-medium rounded-full px-6 py-2 backdrop-blur-md transition-all duration-300">
-            View Profile
-          </Button>
-        </Link>
-      </header>
-
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-6">
-        <h2 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-lg">
-          Welcome to StayNest! <br /> Find the Perfect Place to Stay
-        </h2>
-        <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl">
-          Discover cozy stays, luxury retreats, and unique homes — all in one place.
-        </p>
-
-        
+      
+      <div className="absolute inset-0 z-0">
+        <div className="absolute w-[600px] h-[600px] bg-indigo-500/30 rounded-full blur-3xl top-1/4 left-[-200px] animate-pulse"></div>
+        <div className="absolute w-[500px] h-[500px] bg-purple-500/30 rounded-full blur-3xl bottom-1/3 right-[-150px] animate-pulse"></div>
       </div>
 
-      {/* Glassy Search Bar */}
-      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-md border border-white/30 p-4 rounded-2xl w-[90%] md:w-[50%] shadow-lg z-20">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-center gap-4">
-          <div>
-            <Label className="text-white mb-1">Location</Label>
+     
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="absolute top-0 left-0 w-full flex justify-between items-center px-8 py-4 bg-white/10 backdrop-blur-xl border-b border-white/10 text-white z-20"
+      >
+        <div className="flex items-center gap-2">
+          <Sparkles className="text-indigo-400 w-6 h-6" />
+          <h1 className="text-3xl font-semibold tracking-wide bg-gradient-to-r from-purple-400 to-indigo-300 bg-clip-text text-transparent">
+            StayNest
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Link to="/user-profile">
+            <Button className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-800 font-medium rounded-full px-5 py-2 backdrop-blur-md transition-all duration-300">
+              <User size={18} /> Profile
+            </Button>
+          </Link>
+
+          <Button
+            onClick={handleLogout}
+            className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-800 font-medium rounded-full px-5 py-2 backdrop-blur-md transition-all duration-300"
+          >
+            <LogOut size={18} /> Logout
+          </Button>
+        </div>
+      </motion.header>
+
+      
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1 }}
+        className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6 text-white"
+      >
+        <h2 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-lg">
+          Welcome to StayNest
+        </h2>
+        <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-2xl">
+          Discover futuristic stays and next-gen comfort — wherever your journey takes you.
+        </p>
+      </motion.div>
+
+     
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-2xl border border-white/20 p-6 rounded-3xl w-[90%] md:w-[55%] shadow-[0_0_40px_rgba(99,102,241,0.3)] z-20"
+      >
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-center gap-6">
+          <div className="w-full">
+            <Label className="text-gray-600 mb-1">Location</Label>
             <Input
               type="text"
-              id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Search your dream stay..."
-              className="w-full p-3 bg-transparent text-white placeholder-white focus:outline-none text-lg"
+              className="w-full p-3 bg-transparent text-black placeholder-gray-700 focus:outline-none border-b border-white/30 focus:border-indigo-400 transition-all"
             />
           </div>
-          <div>
-            <Label className="text-white mb-1" >Check-In</Label>
+
+          <div className="w-full">
+            <Label className="text-gray-600 mb-1">Check-In</Label>
             <Input
               type="date"
-              id="checkin"
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="w-full p-3 bg-transparent text-white focus:outline-none text-lg"
-            />  
-          </div>
-          <div>
-            <Label className="text-white mb-1" >Check-Out</Label>
-            <Input
-              type="date" 
-              id="checkout"
-              value={checkOut}
-              onChange={(e) => setCheckOut(e.target.value)}
-              className="w-full p-3 bg-transparent text-white focus:outline-none text-lg"
+              placeholder="Check-In Date"
+              className="w-full p-3 bg-transparent text-black border-b border-white/30 focus:border-indigo-400 focus:outline-none transition-all"
             />
           </div>
-          <div>
-            <Label className="text-white mb-1" >Rooms</Label>
+
+          <div className="w-full">
+            <Label className="text-gray-600 mb-1">Check-Out</Label>
+            <Input
+              type="date"
+              value={checkOut}
+              onChange={(e) => setCheckOut(e.target.value)}
+              placeholder="Select check-out date"
+              className="w-full p-3 bg-transparent text-black border-b border-white/30 focus:border-indigo-400 focus:outline-none transition-all"
+            />
+          </div>
+
+          <div className="w-full">
+            <Label className="text-gray-600 mb-1">Rooms</Label>
             <Input
               type="number"
-              id="rooms"
               min="1"
-              placeholder="1"
               value={rooms}
+              placeholder="Number of rooms"
               onChange={(e) => setRooms(e.target.value)}
-              className="w-full p-3 bg-transparent text-white placeholder-white focus:outline-none text-lg"
+              className="w-full p-3 bg-transparent text-black border-b border-white/30 focus:border-indigo-400 focus:outline-none transition-all"
             />
           </div>
         </form>
-        <Button type="submit" onClick={handleSearch} className="mt-4 w-full md:w-auto bg-white/30 hover:bg-white/40 border border-white/30 text-white font-medium rounded-full px-6 py-3 backdrop-blur-md transition-all duration-300">
-          Search
-        </Button>
-      </div>
+
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex justify-center mt-6"
+        >
+          <Button
+            type="submit"
+            onClick={handleSearch}
+            className="w-full md:w-auto bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-pink-400 text-white font-semibold rounded-full px-10 py-3 shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all"
+          >
+            Search
+          </Button>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
