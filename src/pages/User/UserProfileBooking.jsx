@@ -155,139 +155,234 @@ const UserProfileBooking = () => {
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-br from-[#8c92a0] via-[#e8eaec] to-[#0f172a] py-10 px-5 text-gray-100"
-    >
-      <div className="max-w-4xl mx-auto backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 space-y-12">
-        
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center space-y-3"
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6 }}
+    className="min-h-screen bg-gradient-to-br from-[#8c92a0] via-[#e8eaec] to-[#0f172a] py-10 px-5 text-gray-100"
+  >
+    <div className="max-w-4xl mx-auto backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 space-y-12">
+      
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="text-center space-y-3"
+      >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 text-transparent bg-clip-text">
+          Your Stay Profile
+        </h1>
+        <p className="text-gray-800">
+          Manage your profile, guests, and bookings seamlessly
+        </p>
+        <Button
+          onClick={() => navigate("/home")}
+          className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-blue-500 hover:to-teal-500 mt-2"
         >
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 text-transparent bg-clip-text">
-            Your Stay Profile
-          </h1>
-          <p className="text-gray-800">Manage your profile, guests, and bookings seamlessly</p>
-          <Button
-            onClick={() => navigate("/home")}
-            className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-blue-500 hover:to-teal-500 mt-2"
-          >
-            Go to Home
-          </Button>
-        </motion.div>
+          Go to Home
+        </Button>
+      </motion.div>
 
-        {/* Profile Card */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          transition={{ type: "spring", stiffness: 200 }}
-          className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
+      {/* Profile Card */}
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 200 }}
+        className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
+      >
+        <h2 className="text-2xl font-semibold mb-4 text-gray-700">
+          Profile Details
+        </h2>
+        <div className="grid grid-cols-2 gap-4 text-gray-600">
+          <p><strong>Name:</strong> {name}</p>
+          <p><strong>DOB:</strong> {dateOfBirth || "Not set"}</p>
+          <p><strong>Gender:</strong> {gender || "Not specified"}</p>
+          <p><strong>Email:</strong> {email}</p>
+        </div>
+        <Button
+          onClick={() => setOpenProfileDialog(true)}
+          className="mt-4 bg-gradient-to-r from-teal-800 to-blue-500 hover:opacity-90"
         >
-          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Profile Details</h2>
-          <div className="grid grid-cols-2 gap-4 text-gray-600">
-            <p><strong>Name:</strong> {name}</p>
-            <p><strong>DOB:</strong> {dateOfBirth || "Not set"}</p>
-            <p><strong>Gender:</strong> {gender || "Not specified"}</p>
-            <p><strong>Email:</strong> {email}</p>
-          </div>
-          <Button
-            onClick={() => setOpenProfileDialog(true)}
-            className="mt-4 bg-gradient-to-r from-teal-800 to-blue-500 hover:opacity-90"
-          >
-            Update Profile
-          </Button>
-        </motion.div>
+          Update Profile
+        </Button>
+      </motion.div>
 
-        {/* Guest Section */}
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-blue-900">Guest Information</h3>
-            <Button
-              onClick={() => openGuestDialog()}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
-            >
-              + Add Guest
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {guestInfo.length > 0 ? (
-              guestInfo.map((guest) => (
-                <motion.div
-                  key={guest.id}
-                  whileHover={{ scale: 1.01 }}
-                  className="bg-white/10 p-4 rounded-lg border text-black border-white/20 flex justify-between items-center"
-                >
-                  <div>
-                    <p><strong>Name:</strong> {guest.name}</p>
-                    <p><strong>DOB:</strong> {guest.dateOfBirth}</p>
-                    <p><strong>Gender:</strong> {guest.gender}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => openGuestDialog(guest)}
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => removeGuest(guest.id)}
-                      className="bg-rose-500 hover:bg-rose-600"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-gray-600 text-center">No guests added yet.</p>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Booking Section */}
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
-        >
-          <h3 className="text-xl font-semibold text-purple-700 mb-4">My Bookings</h3>
-          {bookings.length > 0 ? (
-            bookings.map((booking) => (
-              <motion.div
-                key={booking.id}
-                whileHover={{ scale: 1.01 }}
-                className="border  border-white/20 bg-white/5 p-4 rounded-lg mb-3"
+      {/* -------- Profile Update Dialog -------- */}
+      <Dialog open={openProfileDialog} onOpenChange={setOpenProfileDialog}>
+        <DialogContent className="bg-white text-black rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Update Profile</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={updateUserProfile} className="space-y-4">
+            <div>
+              <Label>Name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
+              <Label>Date of Birth</Label>
+              <Input
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Gender</Label>
+              <Input
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                placeholder="Male / Female / Other"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                className="bg-gradient-to-r from-teal-500 to-blue-500 hover:opacity-90"
               >
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-gray-700">
-                  <p><strong>Check-in:</strong> {booking.checkInDate}</p>
-                  <p><strong>Check-out:</strong> {booking.checkOutDate}</p>
-                  <p><strong>Rooms:</strong> {booking.roomsCount}</p>
-                  <p><strong>Amount:</strong> ₹{booking.amount}</p>
-                  <p><strong>Status:</strong> {booking.bookingStatus}</p>
-                  <p><strong>Guests:</strong> {booking.guests.length}</p>
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* -------- Guest Section -------- */}
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-blue-900">
+            Guest Information
+          </h3>
+          <Button
+            onClick={() => openGuestDialog()}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
+          >
+            + Add Guest
+          </Button>
+        </div>
+        <div className="space-y-3">
+          {guestInfo.length > 0 ? (
+            guestInfo.map((guest) => (
+              <motion.div
+                key={guest.id}
+                whileHover={{ scale: 1.01 }}
+                className="bg-white/10 p-4 rounded-lg border text-black border-white/20 flex justify-between items-center"
+              >
+                <div>
+                  <p><strong>Name:</strong> {guest.name}</p>
+                  <p><strong>DOB:</strong> {guest.dateOfBirth}</p>
+                  <p><strong>Gender:</strong> {guest.gender}</p>
                 </div>
-                <Button
-                  onClick={() => cancelBooking(booking.id)}
-                  className="mt-3 bg-gradient-to-r from-rose-500 to-red-500 hover:opacity-90"
-                >
-                  Cancel Booking
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => openGuestDialog(guest)}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={() => removeGuest(guest.id)}
+                    className="bg-rose-500 hover:bg-rose-600"
+                  >
+                    Remove
+                  </Button>
+                </div>
               </motion.div>
             ))
           ) : (
-            <p className="text-gray-400 text-center">No bookings found.</p>
+            <p className="text-gray-600 text-center">No guests added yet.</p>
           )}
-        </motion.div>
-      </div>
-    </motion.div>
-  );
+        </div>
+      </motion.div>
+
+      {/* -------- Guest Dialog -------- */}
+      <Dialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen}>
+        <DialogContent className="bg-white text-black rounded-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingGuest ? "Edit Guest" : "Add Guest"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleGuestSubmit} className="space-y-4">
+            <div>
+              <Label>Guest Name</Label>
+              <Input
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label>Date of Birth</Label>
+              <Input
+                type="date"
+                value={guestDOB}
+                onChange={(e) => setGuestDOB(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label>Gender</Label>
+              <Input
+                value={guestGender}
+                onChange={(e) => setGuestGender(e.target.value)}
+                placeholder="Male / Female / Other"
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
+              >
+                {editingGuest ? "Save Changes" : "Add Guest"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* -------- Booking Section -------- */}
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
+      >
+        <h3 className="text-xl font-semibold text-purple-700 mb-4">
+          My Bookings
+        </h3>
+        {bookings.length > 0 ? (
+          bookings.map((booking) => (
+            <motion.div
+              key={booking.id}
+              whileHover={{ scale: 1.01 }}
+              className="border border-white/20 bg-white/5 p-4 rounded-lg mb-3"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-gray-700">
+                <p><strong>Check-in:</strong> {booking.checkInDate}</p>
+                <p><strong>Check-out:</strong> {booking.checkOutDate}</p>
+                <p><strong>Rooms:</strong> {booking.roomsCount}</p>
+                <p><strong>Amount:</strong> ₹{booking.amount}</p>
+                <p><strong>Status:</strong> {booking.bookingStatus}</p>
+                <p><strong>Guests:</strong> {booking.guests.length}</p>
+              </div>
+              <Button
+                onClick={() => cancelBooking(booking.id)}
+                className="mt-3 bg-gradient-to-r from-rose-500 to-red-500 hover:opacity-90"
+              >
+                Cancel Booking
+              </Button>
+            </motion.div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-center">No bookings found.</p>
+        )}
+      </motion.div>
+    </div>
+  </motion.div>
+);
+
 };
 
 export default UserProfileBooking;

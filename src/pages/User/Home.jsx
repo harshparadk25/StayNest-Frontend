@@ -46,8 +46,9 @@ const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("accesstoken");
+    localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
+    toast.success("Logged out successfully.");
     navigate("/login");
   };
 

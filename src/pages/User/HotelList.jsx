@@ -26,6 +26,8 @@ const HotelList = () => {
       // ✅ Save data after successful fetch
       localStorage.setItem("hotelsList", JSON.stringify(fetchedHotels));
       localStorage.setItem("searchParams", JSON.stringify(params));
+      toast.success("Hotels fetched successfully!");
+      console.log("Fetched Hotels:", fetchedHotels);
     } catch (error) {
       toast.error("Error fetching hotels. Please try again.");
       console.error("Fetch Hotels Error:", error);
@@ -68,6 +70,8 @@ const HotelList = () => {
       navigate(`/hotels/${hotelId}/info`, {
         state: { hotelDetails: res.data, searchParams },
       });
+      console.log("Hotel Details:", res.data);
+      toast.success("Hotel details fetched successfully!");
     } catch (error) {
       toast.error(error.response?.data?.message || "Error fetching hotel details.");
     }

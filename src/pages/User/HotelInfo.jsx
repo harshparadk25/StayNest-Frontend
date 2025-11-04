@@ -14,6 +14,7 @@ const HotelInfo = () => {
   const searchParams =
     location.state?.searchParams ||
     JSON.parse(localStorage.getItem("searchParams") || "{}");
+    console.log("Search Params:", searchParams);
 
   if (!hotelData)
     return (
