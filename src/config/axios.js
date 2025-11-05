@@ -5,11 +5,11 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Attach token before each request
+
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
 
-  // Skip login & signup
+  
   if (token && !config.url.includes("/auth/login") && !config.url.includes("/auth/signup")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -17,7 +17,7 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 
-// Refresh token on 401
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -31,7 +31,7 @@ axiosInstance.interceptors.response.use(
           { withCredentials: true }
         );
 
-        localStorage.setItem("accessToken", res.data.accessToken); // match key
+        localStorage.setItem("accessToken", res.data.accessToken); 
         originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
 
         return axiosInstance(originalRequest);

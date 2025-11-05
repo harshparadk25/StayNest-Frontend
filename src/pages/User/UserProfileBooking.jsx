@@ -17,17 +17,15 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const UserProfileBooking = () => {
-  const user = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // User Profile States
   const [name, setName] = useState(user?.name || "");
   const [dateOfBirth, setDateOfBirth] = useState(user?.dateOfBirth || "");
   const [gender, setGender] = useState(user?.gender || "");
   const [email, setEmail] = useState(user?.email || "");
   const [openProfileDialog, setOpenProfileDialog] = useState(false);
 
-  // Guest States
   const [guestInfo, setGuestInfo] = useState([]);
   const [guestDialogOpen, setGuestDialogOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
@@ -36,18 +34,16 @@ const UserProfileBooking = () => {
   const [editingGuest, setEditingGuest] = useState(null);
   const [bookings, setBookings] = useState([]);
 
-  // Fetch user profile
   const fetchUserProfile = async () => {
     try {
       const res = await axios.get("/users/profile");
-      const userProfile = res.data.data;
-      setName(userProfile.name);
-      setDateOfBirth(userProfile.dateOfBirth);
-      setGender(userProfile.gender);
-      setEmail(userProfile.email);
-    } catch (error) {
-      toast.error("Failed to fetch user profile");
-      console.error(error);
+      const data = res.data.data;
+      setName(data.name);
+      setDateOfBirth(data.dateOfBirth);
+      setGender(data.gender);
+      setEmail(data.email);
+    } catch {
+      toast.error("Failed to fetch profile");
     }
   };
 
@@ -55,9 +51,33 @@ const UserProfileBooking = () => {
     try {
       const res = await axios.get("/users/guests");
       setGuestInfo(res.data.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch guest information");
-      console.error(error);
+    } catch {
+      toast.error("Failed to fetch guests");
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const res = await axios.get("/users/myBookings");
+      setBookings(res.data.data || []);
+    } catch {
+      toast.error("Failed to fetch bookings");
+    }
+  };
+
+  const updateUserProfile = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch("/users/profile", {
+        name,
+        dateOfBirth,
+        gender: gender?.toUpperCase(),
+      });
+      toast.success("Profile updated");
+      setOpenProfileDialog(false);
+      fetchUserProfile();
+    } catch {
+      toast.error("Update failed");
     }
   };
 
@@ -78,73 +98,40 @@ const UserProfileBooking = () => {
 
   const handleGuestSubmit = async (e) => {
     e.preventDefault();
-    const guestPayload = {
-      name: guestName,
-      dateOfBirth: guestDOB,
-      gender: guestGender.toUpperCase(),
-    };
+    const payload = { name: guestName, dateOfBirth: guestDOB, gender: guestGender.toUpperCase() };
+
     try {
       if (editingGuest) {
-        await axios.put(`/users/guests/${editingGuest.id}`, guestPayload);
-        toast.success("Guest updated successfully");
+        await axios.put(`/users/guests/${editingGuest.id}`, payload);
+        toast.success("Guest updated");
       } else {
-        await axios.post("/users/guests", guestPayload);
-        toast.success("Guest added successfully");
+        await axios.post("/users/guests", payload);
+        toast.success("Guest added");
       }
       setGuestDialogOpen(false);
-      setEditingGuest(null);
       fetchGuestInfo();
-    } catch (error) {
+    } catch {
       toast.error("Failed to save guest");
-      console.error(error);
     }
   };
 
-  const removeGuest = async (guestId) => {
+  const removeGuest = async (id) => {
     try {
-      await axios.delete(`/users/guests/${guestId}`);
-      toast.success("Guest removed successfully");
+      await axios.delete(`/users/guests/${id}`);
+      toast.success("Guest removed");
       fetchGuestInfo();
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove guest");
-      console.error(error);
     }
   };
 
-  const updateUserProfile = async (e) => {
-    e.preventDefault();
+  const cancelBooking = async (id) => {
     try {
-      const updatedUser = {
-        name,
-        dateOfBirth,
-        gender: gender?.toUpperCase(),
-      };
-      await axios.patch("/users/profile", updatedUser);
-      toast.success("Profile updated successfully");
-      setOpenProfileDialog(false);
-    } catch (error) {
-      toast.error("Failed to update profile");
-      console.error(error.response?.data || error.message);
-    }
-  };
-
-  const fetchBookings = async () => {
-    try {
-      const res = await axios.get("/users/myBookings");
-      setBookings(res.data.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch bookings");
-      console.error(error);
-    }
-  };
-
-  const cancelBooking = async (bookingId) => {
-    try {
-      await axios.post(`/bookings/${bookingId}/cancel`, {});
-      toast.success("Booking cancelled successfully");
+      await axios.post(`/bookings/${id}/cancel`);
+      toast.success("Booking cancelled");
       fetchBookings();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to cancel booking");
+    } catch {
+      toast.error("Cancel failed");
     }
   };
 
@@ -155,234 +142,139 @@ const UserProfileBooking = () => {
   }, []);
 
   return (
-  <motion.div
-    initial={{ opacity: 0, y: 15 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6 }}
-    className="min-h-screen bg-gradient-to-br from-[#8c92a0] via-[#e8eaec] to-[#0f172a] py-10 px-5 text-gray-100"
-  >
-    <div className="max-w-4xl mx-auto backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 space-y-12">
-      
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-center space-y-3"
-      >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 text-transparent bg-clip-text">
-          Your Stay Profile
-        </h1>
-        <p className="text-gray-800">
-          Manage your profile, guests, and bookings seamlessly
-        </p>
-        <Button
-          onClick={() => navigate("/home")}
-          className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-blue-500 hover:to-teal-500 mt-2"
-        >
-          Go to Home
-        </Button>
-      </motion.div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="min-h-screen bg-gradient-to-b from-[#FFF8F1] to-[#F4D9C6] px-6 py-10"
+    >
+      <div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-xl border border-[#F3D9D9] shadow-xl rounded-2xl p-8 space-y-10">
 
-      {/* Profile Card */}
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        transition={{ type: "spring", stiffness: 200 }}
-        className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
-      >
-        <h2 className="text-2xl font-semibold mb-4 text-gray-700">
-          Profile Details
-        </h2>
-        <div className="grid grid-cols-2 gap-4 text-gray-600">
-          <p><strong>Name:</strong> {name}</p>
-          <p><strong>DOB:</strong> {dateOfBirth || "Not set"}</p>
-          <p><strong>Gender:</strong> {gender || "Not specified"}</p>
-          <p><strong>Email:</strong> {email}</p>
-        </div>
-        <Button
-          onClick={() => setOpenProfileDialog(true)}
-          className="mt-4 bg-gradient-to-r from-teal-800 to-blue-500 hover:opacity-90"
-        >
-          Update Profile
-        </Button>
-      </motion.div>
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold text-[#3B3B3B]">Your Profile</h1>
+          <p className="text-[#7a7a7a]">Manage your info, guests & bookings</p>
 
-      {/* -------- Profile Update Dialog -------- */}
-      <Dialog open={openProfileDialog} onOpenChange={setOpenProfileDialog}>
-        <DialogContent className="bg-white text-black rounded-xl">
-          <DialogHeader>
-            <DialogTitle>Update Profile</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={updateUserProfile} className="space-y-4">
-            <div>
-              <Label>Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div>
-              <Label>Date of Birth</Label>
-              <Input
-                type="date"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Gender</Label>
-              <Input
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                placeholder="Male / Female / Other"
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-teal-500 to-blue-500 hover:opacity-90"
-              >
-                Save Changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* -------- Guest Section -------- */}
-      <motion.div
-        whileHover={{ scale: 1.01 }}
-        className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-blue-900">
-            Guest Information
-          </h3>
-          <Button
-            onClick={() => openGuestDialog()}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
+          <Button 
+            onClick={() => navigate("/home")}
+            className="mt-2 rounded-full bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B]"
           >
-            + Add Guest
+            Home
           </Button>
         </div>
-        <div className="space-y-3">
-          {guestInfo.length > 0 ? (
-            guestInfo.map((guest) => (
-              <motion.div
-                key={guest.id}
-                whileHover={{ scale: 1.01 }}
-                className="bg-white/10 p-4 rounded-lg border text-black border-white/20 flex justify-between items-center"
-              >
-                <div>
-                  <p><strong>Name:</strong> {guest.name}</p>
-                  <p><strong>DOB:</strong> {guest.dateOfBirth}</p>
-                  <p><strong>Gender:</strong> {guest.gender}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => openGuestDialog(guest)}
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={() => removeGuest(guest.id)}
-                    className="bg-rose-500 hover:bg-rose-600"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </motion.div>
-            ))
-          ) : (
-            <p className="text-gray-600 text-center">No guests added yet.</p>
-          )}
-        </div>
-      </motion.div>
 
-      {/* -------- Guest Dialog -------- */}
-      <Dialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen}>
-        <DialogContent className="bg-white text-black rounded-xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingGuest ? "Edit Guest" : "Add Guest"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleGuestSubmit} className="space-y-4">
-            <div>
-              <Label>Guest Name</Label>
-              <Input
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label>Date of Birth</Label>
-              <Input
-                type="date"
-                value={guestDOB}
-                onChange={(e) => setGuestDOB(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label>Gender</Label>
-              <Input
-                value={guestGender}
-                onChange={(e) => setGuestGender(e.target.value)}
-                placeholder="Male / Female / Other"
-                required
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90"
-              >
-                {editingGuest ? "Save Changes" : "Add Guest"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        {/* Profile Card */}
+        <motion.div className="bg-[#FFF1EC] border border-[#F3D9D9] p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold text-[#3B3B3B] mb-3">Profile</h2>
 
-      {/* -------- Booking Section -------- */}
-      <motion.div
-        whileHover={{ scale: 1.01 }}
-        className="bg-white/10 rounded-2xl p-6 shadow-md border border-white/20"
-      >
-        <h3 className="text-xl font-semibold text-purple-700 mb-4">
-          My Bookings
-        </h3>
-        {bookings.length > 0 ? (
-          bookings.map((booking) => (
-            <motion.div
-              key={booking.id}
-              whileHover={{ scale: 1.01 }}
-              className="border border-white/20 bg-white/5 p-4 rounded-lg mb-3"
+          <div className="grid grid-cols-2 gap-3 text-[#6b6b6b]">
+            <p><strong>Name:</strong> {name}</p>
+            <p><strong>DOB:</strong> {dateOfBirth || "Not set"}</p>
+            <p><strong>Gender:</strong> {gender}</p>
+            <p><strong>Email:</strong> {email}</p>
+          </div>
+
+          <Button
+            onClick={() => setOpenProfileDialog(true)}
+            className="mt-4 rounded-full bg-gradient-to-r from-[#E28C8A] to-[#B7CADB] text-[#3B3B3B]"
+          >
+            Edit Profile
+          </Button>
+        </motion.div>
+
+        {/* Profile Edit Dialog */}
+        <Dialog open={openProfileDialog} onOpenChange={setOpenProfileDialog}>
+          <DialogContent className="bg-white rounded-2xl border border-[#F3D9D9]">
+            <DialogHeader><DialogTitle>Edit Profile</DialogTitle></DialogHeader>
+
+            <form onSubmit={updateUserProfile} className="space-y-3">
+              <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+              <div><Label>DOB</Label><Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} /></div>
+              <div><Label>Gender</Label><Input value={gender} onChange={(e) => setGender(e.target.value)} /></div>
+
+              <DialogFooter>
+                <Button className="w-full rounded-full bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B]">
+                  Save
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Guests */}
+        <motion.div className="bg-white/80 border border-[#F3D9D9] p-6 rounded-xl shadow-md">
+          <div className="flex justify-between mb-4">
+            <h3 className="text-xl font-semibold text-[#3B3B3B]">Guests</h3>
+            <Button 
+              onClick={() => openGuestDialog()}
+              className="rounded-full bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B]"
             >
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-gray-700">
-                <p><strong>Check-in:</strong> {booking.checkInDate}</p>
-                <p><strong>Check-out:</strong> {booking.checkOutDate}</p>
-                <p><strong>Rooms:</strong> {booking.roomsCount}</p>
-                <p><strong>Amount:</strong> ₹{booking.amount}</p>
-                <p><strong>Status:</strong> {booking.bookingStatus}</p>
-                <p><strong>Guests:</strong> {booking.guests.length}</p>
-              </div>
-              <Button
-                onClick={() => cancelBooking(booking.id)}
-                className="mt-3 bg-gradient-to-r from-rose-500 to-red-500 hover:opacity-90"
-              >
-                Cancel Booking
-              </Button>
-            </motion.div>
-          ))
-        ) : (
-          <p className="text-gray-400 text-center">No bookings found.</p>
-        )}
-      </motion.div>
-    </div>
-  </motion.div>
-);
+              + Add Guest
+            </Button>
+          </div>
 
+          {guestInfo.length ? guestInfo.map((g) => (
+            <div key={g.id} className="bg-[#FFF1EC] p-4 border border-[#F3D9D9] rounded-xl mb-2 flex justify-between">
+              <div className="text-[#6b6b6b]">
+                <p><strong>Name:</strong> {g.name}</p>
+                <p><strong>DOB:</strong> {g.dateOfBirth}</p>
+                <p><strong>Gender:</strong> {g.gender}</p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={() => openGuestDialog(g)} className="rounded-full bg-[#B7CADB] text-[#3B3B3B]">Edit</Button>
+                <Button onClick={() => removeGuest(g.id)} className="rounded-full bg-[#E28C8A] text-white">Remove</Button>
+              </div>
+            </div>
+          )) : <p className="text-[#7a7a7a] text-center">No guests added yet.</p>}
+        </motion.div>
+
+        {/* Guest Dialog */}
+        <Dialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen}>
+          <DialogContent className="bg-white rounded-2xl border border-[#F3D9D9]">
+            <DialogHeader><DialogTitle>{editingGuest ? "Edit Guest" : "Add Guest"}</DialogTitle></DialogHeader>
+
+            <form onSubmit={handleGuestSubmit} className="space-y-3">
+              <div><Label>Name</Label><Input value={guestName} onChange={(e) => setGuestName(e.target.value)} required /></div>
+              <div><Label>DOB</Label><Input type="date" value={guestDOB} onChange={(e) => setGuestDOB(e.target.value)} required /></div>
+              <div><Label>Gender</Label><Input value={guestGender} onChange={(e) => setGuestGender(e.target.value)} required /></div>
+
+              <DialogFooter>
+                <Button className="w-full rounded-full bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B]">
+                  {editingGuest ? "Save Changes" : "Add Guest"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bookings */}
+        <motion.div className="bg-[#FFF1EC] border border-[#F3D9D9] p-6 rounded-xl shadow-md">
+          <h3 className="text-xl font-semibold text-[#3B3B3B] mb-4">Bookings</h3>
+
+          {bookings.length ? bookings.map((b) => (
+            <div key={b.id} className="bg-white/70 p-4 border border-[#F3D9D9] rounded-xl mb-2">
+              <div className="grid grid-cols-2 gap-2 text-[#6b6b6b]">
+                <p><strong>Check-in:</strong> {b.checkInDate}</p>
+                <p><strong>Check-out:</strong> {b.checkOutDate}</p>
+                <p><strong>Rooms:</strong> {b.roomsCount}</p>
+                <p><strong>Amount:</strong> ₹{b.amount}</p>
+                <p><strong>Status:</strong> {b.bookingStatus}</p>
+                <p><strong>Guests:</strong> {b.guests.length}</p>
+              </div>
+
+              <Button
+                onClick={() => cancelBooking(b.id)}
+                className="mt-3 rounded-full bg-gradient-to-r from-[#E28C8A] to-[#B7CADB] text-[#3B3B3B]"
+              >
+                Cancel
+              </Button>
+            </div>
+          )) : <p className="text-[#7a7a7a] text-center">No bookings found.</p>}
+        </motion.div>
+
+      </div>
+    </motion.div>
+  );
 };
 
 export default UserProfileBooking;
