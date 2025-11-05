@@ -23,7 +23,6 @@ const BookingDetails = () => {
   const [guests, setGuests] = useState([]);
   const [selectedGuests, setSelectedGuests] = useState(new Set());
 
-  // ✅ Fetch guests
   const fetchAllGuest = async () => {
     try {
       const res = await axios.get("/users/guests", {
@@ -31,30 +30,24 @@ const BookingDetails = () => {
       });
       setGuests(res.data.data || []);
     } catch (error) {
-      toast.error("Error fetching guests. Please try again.");
-      console.error("Fetch Guests Error:", error);
+      toast.error("Error fetching guests");
     }
   };
 
-  // ✅ Toggle guest selection
   const handleSelectGuest = (guestId) => {
     setSelectedGuests((prev) => {
-      const newSet = new Set(prev);
-      newSet.has(guestId) ? newSet.delete(guestId) : newSet.add(guestId);
-      return newSet;
+      const set = new Set(prev);
+      set.has(guestId) ? set.delete(guestId) : set.add(guestId);
+      return set;
     });
   };
 
-  // ✅ Add selected guests to booking
   const handleAddGuestsToBooking = async () => {
-    if (selectedGuests.size === 0) {
-      toast.error("Please select at least one guest.");
-      return;
-    }
+    if (!selectedGuests.size) return toast.error("Select at least one guest");
 
     try {
       const guestIds = Array.from(selectedGuests);
-      const res = await axios.post(
+      await axios.post(
         `/bookings/${bookingDetails.id}/addGuests`,
         JSON.stringify(guestIds),
         {
@@ -65,31 +58,28 @@ const BookingDetails = () => {
         }
       );
 
-      toast.success("Guests successfully added to booking!");
-      console.log("Add Guest Response:", res.data);
+      toast.success("Guests added!");
       setGuestDialogOpen(false);
-    } catch (error) {
-      console.error("Add Guest Error:", error);
-      toast.error("Failed to add guests. Please try again.");
+    } catch {
+      toast.error("Failed to add guests.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F1] to-[#F4D9C6] py-12 px-4">
       <motion.div
-        className="max-w-4xl mx-auto bg-white shadow-2xl rounded-3xl p-10 border border-indigo-100"
+        className="max-w-4xl mx-auto bg-white/80 backdrop-blur-xl shadow-lg rounded-2xl p-10 border border-[#FBECEC]"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.5 }}
       >
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-700 tracking-tight">
-            Booking Details
-          </h1>
+          <h1 className="text-4xl font-bold text-[#3B3B3B]">Booking Details</h1>
+          
           <Button
             variant="outline"
             onClick={() => navigate("/home")}
-            className="hover:bg-indigo-100"
+            className="rounded-full border-[#E8B4B8] text-[#E28C8A] hover:bg-[#E8B4B8]/30"
           >
             Go to Home
           </Button>
@@ -98,40 +88,30 @@ const BookingDetails = () => {
         {bookingDetails ? (
           <>
             <motion.div
-              className="bg-indigo-50 p-6 rounded-2xl shadow-inner"
-              initial={{ opacity: 0, scale: 0.97 }}
+              className="bg-[#FFF1EC] p-6 rounded-xl shadow-inner"
+              initial={{ opacity: 0.95, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4 }}
             >
-              <h2 className="text-2xl font-semibold text-indigo-800 mb-4 border-b pb-2">
+              <h2 className="text-2xl font-semibold text-[#3B3B3B] mb-4 border-b pb-2">
                 Booking Confirmation
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[#6b6b6b]">
+                <p><strong>ID:</strong> {bookingDetails.id}</p>
+                <p><strong>Check-in:</strong> {new Date(bookingDetails.checkInDate).toLocaleDateString()}</p>
+                <p><strong>Check-out:</strong> {new Date(bookingDetails.checkOutDate).toLocaleDateString()}</p>
+                <p><strong>Rooms:</strong> {bookingDetails.roomsCount}</p>
                 <p>
-                  <strong>Booking ID:</strong> {bookingDetails.id}
-                </p>
-                <p>
-                  <strong>Check-in:</strong>{" "}
-                  {new Date(bookingDetails.checkInDate).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Check-out:</strong>{" "}
-                  {new Date(bookingDetails.checkOutDate).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Rooms:</strong> {bookingDetails.roomsCount}
-                </p>
-                <p>
-                  <strong>Total Amount:</strong>{" "}
-                  <span className="text-indigo-700 font-medium">
+                  <strong>Total:</strong>{" "}
+                  <span className="text-[#E28C8A] font-bold">
                     ₹{bookingDetails.amount}
                   </span>
                 </p>
                 <p>
                   <strong>Status:</strong>{" "}
                   <span
-                    className={`px-3 py-1 rounded-full text-white text-sm ${
+                    className={`px-3 py-1 text-xs rounded-full text-white ${
                       bookingDetails.bookingStatus === "RESERVED"
                         ? "bg-green-500"
                         : "bg-yellow-500"
@@ -143,61 +123,54 @@ const BookingDetails = () => {
               </div>
             </motion.div>
 
-            {/* Guest Dialog */}
             <div className="mt-6">
               <Dialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
                     onClick={() => {
-                      setGuestDialogOpen(true);
                       fetchAllGuest();
+                      setGuestDialogOpen(true);
                     }}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B] rounded-full"
                   >
-                    Add Guest to Booking
+                    Add Guests
                   </Button>
                 </DialogTrigger>
 
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md bg-white rounded-2xl border border-[#F3D9D9]">
                   <DialogHeader>
-                    <DialogTitle className="text-lg font-semibold text-indigo-700">
+                    <DialogTitle className="text-[#3B3B3B] text-lg font-semibold">
                       Select Guests
                     </DialogTitle>
                   </DialogHeader>
 
-                  <div className="max-h-64 overflow-y-auto mt-4 space-y-2">
-                    {guests.length > 0 ? (
+                  <div className="max-h-60 overflow-y-auto mt-4 space-y-2">
+                    {guests.length ? (
                       guests.map((guest) => (
                         <div
                           key={guest.id}
                           onClick={() => handleSelectGuest(guest.id)}
-                          className={`cursor-pointer border p-3 rounded-lg flex justify-between items-center transition-all ${
+                          className={`cursor-pointer flex justify-between px-4 py-2 rounded-lg border transition ${
                             selectedGuests.has(guest.id)
-                              ? "bg-indigo-100 border-indigo-500"
-                              : "bg-white hover:bg-gray-100"
+                              ? "bg-[#FBECEC] border-[#E28C8A] text-[#E28C8A]"
+                              : "bg-white border-[#F3D9D9] hover:bg-[#FFF1EC]"
                           }`}
                         >
                           <span>{guest.name}</span>
-                          {selectedGuests.has(guest.id) && (
-                            <span className="text-indigo-600 font-semibold">
-                              ✓
-                            </span>
-                          )}
+                          {selectedGuests.has(guest.id) && "✓"}
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500">
-                        No guests available.
-                      </p>
+                      <p className="text-center text-[#8a8a8a]">No guests found</p>
                     )}
                   </div>
 
                   <DialogFooter className="mt-4">
                     <Button
                       onClick={handleAddGuestsToBooking}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                      className="w-full bg-gradient-to-r from-[#E28C8A] to-[#B7CADB] text-[#3B3B3B] rounded-xl py-2"
                     >
-                      Confirm Selection
+                      Confirm
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -208,24 +181,19 @@ const BookingDetails = () => {
               className="mt-8 text-center text-green-600 font-semibold text-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
             >
-              ✅ Thank you for booking with us! We look forward to your stay.
+              ✅ Thank you for booking — we look forward to hosting you!
             </motion.p>
 
             <Button
-              onClick={() =>
-                navigate("/user-profile", { state: { from: "bookingDetails" } })
-              }
-              className="mt-6 w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:opacity-90 text-white font-semibold py-3 rounded-xl transition-all"
+              onClick={() => navigate("/user-profile")}
+              className="mt-6 w-full bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B] rounded-xl py-3 font-semibold"
             >
               View My Bookings
             </Button>
           </>
         ) : (
-          <p className="text-center text-red-600 text-lg mt-8">
-            No booking details available.
-          </p>
+          <p className="text-center text-red-600 mt-8">No booking details.</p>
         )}
       </motion.div>
     </div>

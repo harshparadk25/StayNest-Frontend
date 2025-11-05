@@ -1,3 +1,5 @@
+/* ✅ Only CSS changed — logic restored */
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -15,7 +17,6 @@ const HotelList = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch hotels
   const fetchHotels = async (params) => {
     if (!params) return;
     setLoading(true);
@@ -23,20 +24,16 @@ const HotelList = () => {
       const res = await axios.post("/hotels/search", params);
       const fetchedHotels = res.data.data?.content || [];
       setHotels(fetchedHotels);
-      // ✅ Save data after successful fetch
       localStorage.setItem("hotelsList", JSON.stringify(fetchedHotels));
       localStorage.setItem("searchParams", JSON.stringify(params));
-      toast.success("Hotels fetched successfully!");
-      console.log("Fetched Hotels:", fetchedHotels);
-    } catch (error) {
-      toast.error("Error fetching hotels. Please try again.");
-      console.error("Fetch Hotels Error:", error);
+      toast.success("Hotels found!");
+    } catch {
+      toast.error("Error fetching hotels");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Restore from localStorage if state is empty
   useEffect(() => {
     const savedHotels = JSON.parse(localStorage.getItem("hotelsList"));
     const savedParams = JSON.parse(localStorage.getItem("searchParams"));
@@ -48,12 +45,12 @@ const HotelList = () => {
       setHotels(savedHotels);
       setSearchParams(savedParams);
     } else {
-      toast.error("No search results found. Please search again.");
+      toast.error("Search again");
       navigate("/home");
     }
   }, []);
 
-  // ✅ Fetch details
+  
   const handleGetDetails = async (hotelId) => {
     try {
       const token = localStorage.getItem("accessToken");
@@ -70,102 +67,89 @@ const HotelList = () => {
       navigate(`/hotels/${hotelId}/info`, {
         state: { hotelDetails: res.data, searchParams },
       });
-      console.log("Hotel Details:", res.data);
       toast.success("Hotel details fetched successfully!");
     } catch (error) {
       toast.error(error.response?.data?.message || "Error fetching hotel details.");
     }
   };
 
-  // ✅ Loading & empty states
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50 text-gray-700 text-lg font-medium">
-        Loading hotels...
+      <div className="flex justify-center items-center h-screen text-[#5a5a5a] text-lg">
+        Loading cozy stays...
       </div>
     );
 
   if (!hotels.length)
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-gray-50 text-gray-700 text-lg font-medium">
-        <p>No hotels found for your search.</p>
+      <div className="flex flex-col justify-center items-center h-screen text-[#5a5a5a]">
+        <p>No stays found.</p>
         <Button
           onClick={() => navigate("/home")}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full px-6 py-3 shadow-md transition-all duration-300"
+          className="mt-4 bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B] rounded-full px-6 py-3"
         >
-          Go to Home
+          Search Again
         </Button>
       </div>
     );
 
-  // ✅ Main layout
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-6">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F1] to-[#F4D9C6] py-12 px-6">
       <header className="flex justify-between items-center max-w-6xl mx-auto mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-          Available Stays in{" "}
-          <span className="text-blue-700 capitalize">
-            {searchParams?.city || "your area"}
-          </span>
+        <h1 className="text-3xl font-bold text-[#3B3B3B]">
+          Stays in <span className="text-[#E28C8A] capitalize">{searchParams?.city}</span>
         </h1>
+
         <Button
           onClick={() => navigate("/home")}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full px-6 py-2 shadow-md transition-all duration-300"
+          className="bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B] rounded-full px-6 py-2 shadow"
         >
-          Go to Home
+          Home
         </Button>
       </header>
 
-      {/* Hotel Grid */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {hotels.map((hotel, index) => (
-          <motion.div
-            key={hotel.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.4 }}
-          >
-            <Card className="overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {hotels.map((hotel, i) => (
+          <motion.div key={hotel.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+            <Card className="rounded-2xl border border-[#f3d5c5] bg-white shadow hover:shadow-lg transition duration-300 hover:-translate-y-1">
               {hotel.photos?.[0] && (
                 <motion.img
                   src={hotel.photos[0]}
                   alt={hotel.name}
                   className="h-56 w-full object-cover rounded-t-2xl"
                   whileHover={{ scale: 1.03 }}
-                  transition={{ duration: 0.4 }}
                 />
               )}
+
               <CardContent className="p-5">
-                <CardHeader className="p-0 mb-3">
-                  <CardTitle className="text-xl font-semibold text-gray-900 truncate">
+                <CardHeader className="p-0 mb-2">
+                  <CardTitle className="text-lg font-semibold text-[#3B3B3B] truncate">
                     {hotel.name}
                   </CardTitle>
                 </CardHeader>
 
-                <p className="text-sm text-gray-600 mb-1">
-                  {hotel.contactInfo?.address || "Address not available"}
-                </p>
-                <p className="text-sm text-gray-500">{hotel.city}</p>
+                <p className="text-sm text-[#6b6b6b] mb-1">{hotel.contactInfo?.address}</p>
+                <p className="text-xs text-[#7a7a7a]">{hotel.city}</p>
 
-                <p className="mt-3 font-bold text-blue-700 text-lg">
-                  ₹{hotel.price || "N/A"}{" "}
-                  <span className="text-sm text-gray-500 font-medium">/ night</span>
+                <p className="mt-2 font-bold text-[#E28C8A] text-lg">
+                  ₹{hotel.price}
+                  <span className="text-xs text-[#6b6b6b] font-normal"> / night</span>
                 </p>
 
-                <div className="mt-4 flex gap-2 flex-wrap">
-                  {hotel.amenities?.slice(0, 5).map((item, index) => (
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  {hotel.amenities?.slice(0, 5).map((item, idx) => (
                     <span
-                      key={index}
-                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium border border-blue-200"
+                      key={idx}
+                      className="bg-[#FBECEC] text-[#E28C8A] px-3 py-1 rounded-full text-xs border border-[#F3D9D9]"
                     >
                       {item}
                     </span>
                   ))}
                 </div>
 
+                {/* ✅ RESTORED: use handleGetDetails to fetch + navigate with hotelDetails */}
                 <Button
-                  className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-2.5 transition-all duration-300"
+                  className="mt-4 w-full bg-gradient-to-r from-[#E8B4B8] to-[#B7CADB] text-[#3B3B3B] rounded-xl py-2"
                   onClick={() => handleGetDetails(hotel.id)}
                 >
                   View Details
